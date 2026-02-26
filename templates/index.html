@@ -2,8 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-
+    <title>Tasks</title>
+    <style>
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .status.in_progress {
+            background-color: #ffd700;
+            color: #000;
+        }
+        .status.completed {
+            background-color: #90ee90;
+            color: #000;
+        }
+        .filter-form {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .status-form {
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,16 +44,54 @@
 {% endwith %}
 
     <h1>All Tasks</h1>
-<ul>
+
+    <!-- Форма фильтрации -->
+    <div class="filter-form">
+        <form method="get">
+            <label>
+                <input type="checkbox" name="show_incomplete" value="true"
+                       {% if show_only_incomplete %}checked{% endif %}>
+                Show only incomplete tasks
+            </label>
+            <button type="submit">Apply filter</button>
+            {% if show_only_incomplete %}
+                <a href="{{ url_for('tasks.get_all_tasks') }}">Clear filter</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <ul>
     {% for task in tasks %}
-    <li>
-    <a href="{{ url_for('tasks.get_task', task_id=task.id) }}">{{ task.title }}></a>
-    <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="post">
-    <button type="submit">Delete</button>
-    </form>
-    </li>
+        <li>
+            <a href="{{ url_for('tasks.get_task', task_id=task.id) }}">{{ task.title }}</a>
+
+            <!-- Отображение статуса -->
+            <span class="status {{ task.status }}">
+                {% if task.status == 'in_progress' %}
+                    In Progress
+                {% else %}
+                    Completed
+                {% endif %}
+            </span>
+
+            <!-- Форма изменения статуса -->
+            <form class="status-form" action="{{ url_for('tasks.update_status', task_id=task.id) }}" method="post">
+                <select name="status" onchange="this.form.submit()">
+                    <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </form>
+
+            <!-- Форма удаления -->
+            <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="post" style="display: inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    {% else %}
+        <li>No tasks found</li>
     {% endfor %}
-</ul>
-<a href="{{ url_for('tasks.add_task') }}">Add New Task</a>
+    </ul>
+
+    <a href="{{ url_for('tasks.add_task') }}">Add New Task</a>
 </body>
 </html>

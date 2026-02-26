@@ -2,15 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Add Task</title>
 </head>
 <body>
-<h1>Add Task</h1>
-<form method="post">
-    <input type="text" name="title" placeholder="Task title" required>
-    <textarea name="description" placeholder="Task description"></textarea>
-    <button type="submit">Add Task</button>
-</form>
-<a href="{{ url_for('tasks.get_all_tasks') }}"> Back to list</a>
+    <h1>Add Task</h1>
+    <form method="post">
+        <div>
+            <input type="text" name="title" placeholder="Task title" required>
+        </div>
+        <div>
+            <textarea name="description" placeholder="Task description"></textarea>
+        </div>
+        <div>
+            <label>Status:</label>
+            <select name="status">
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        <button type="submit">Add Task</button>
+    </form>
+    <a href="{{ url_for('tasks.get_all_tasks') }}">Back to list</a>
 </body>
 </html>

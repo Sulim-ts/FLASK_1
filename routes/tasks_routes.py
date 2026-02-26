@@ -3,36 +3,43 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database.models import Task
 from database.engine import db
 
-# Создаем сам Blueprint
 tasks_bp = Blueprint('tasks', __name__)
+
 
 @tasks_bp.route('/')
 def get_all_tasks():
-    tasks = Task.query.all()
-    return render_template('index.html', tasks=tasks)
+    try:
+        show_only_incomplete = request.args.get('show_incomplete', False, type=bool)
+
+        if show_only_incomplete:
+            tasks = Task.query.filter_by(status='in_progress').all()
+        else:
+            tasks = Task.query.all()
+
+        print(f"Found {len(tasks)} tasks")  # Отладка
+        return render_template('index.html', tasks=tasks, show_only_incomplete=show_only_incomplete)
+    except Exception as e:
+        print(f"Error in get_all_tasks: {e}")
+        return f"Error: {e}", 500
+
 
 @tasks_bp.route('/add', methods=['GET', 'POST'])
 def add_task():
     if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
-        task = Task(title=title, description=description)
-        db.session.add(task)
-        db.session.commit()
-        flash('Task added!')
-        return redirect(url_for('tasks.get_all_tasks'))
+        try:
+            title = request.form.get('title')
+            description = request.form.get('description')
+            status = request.form.get('status', 'in_progress')
+            task = Task(title=title, description=description, status=status)
+            db.session.add(task)
+            db.session.commit()
+            flash('Task added!')
+            return redirect(url_for('tasks.get_all_tasks'))
+        except Exception as e:
+            print(f"Error adding task: {e}")
+            flash(f'Error: {e}')
+            return redirect(url_for('tasks.get_all_tasks'))
 
     return render_template('add_task.html')
 
-@tasks_bp.route('/<int:task_id>')
-def get_task(task_id):
-    task = Task.query.get_or_404(task_id)
-    return render_template('task_detail.html', task=task)
-
-@tasks_bp.route('/delete/<int:task_id>', methods=['POST'])
-def delete_task(task_id):
-    task = Task.query.get_or_404(task_id)
-    db.session.delete(task)
-    db.session.commit()
-    flash('Task deleted!')
-    return redirect(url_for('tasks.get_all_tasks'))
+# Добавьте остальные маршруты...
